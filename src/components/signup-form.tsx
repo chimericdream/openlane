@@ -1,6 +1,9 @@
+import { Box, Button, Typography } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { SelectInput } from './select-input.tsx';
+import { TextInput } from './text-input.tsx';
 
 import type { Profile } from '../types.ts';
 
@@ -37,21 +40,27 @@ const schema = z.object({
 export const SignupForm = () => {
     const { state, send } = useProfileContext();
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm({
+    const { handleSubmit, control } = useForm({
         resolver: zodResolver(schema),
     });
 
     const { context } = state;
 
     return (
-        <>
-            <h1>Signup</h1>
+        <Box
+            sx={{
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <Typography component="h1" variant="h5">
+                Signup
+            </Typography>
             {context.message && <p>{context.message}</p>}
-            <form
+            <Box
+                component="form"
                 onSubmit={handleSubmit((d) => {
                     const data = { ...d } as Profile;
                     if (data.phoneNumber) {
@@ -61,47 +70,60 @@ export const SignupForm = () => {
 
                     send({ type: 'trySignup', data });
                 })}
+                sx={{ mt: 1 }}
             >
-                <label htmlFor="email">Email</label>
-                <input type="email" {...register('email')} />
-                <br />
-                {errors.email?.message && (
-                    <p>{String(errors.email?.message)}</p>
-                )}
-                <label htmlFor="password">Password</label>
-                <input type="password" {...register('password')} />
-                <br />
-                {errors.password?.message && (
-                    <p>{String(errors.password?.message)}</p>
-                )}
-                <label htmlFor="fullName">Full Name</label>
-                <input type="text" {...register('fullName')} />
-                <br />
-                {errors.fullName?.message && (
-                    <p>{String(errors.fullName?.message)}</p>
-                )}
-                <label htmlFor="phoneNumber">Phone Number</label>
-                <input type="text" {...register('phoneNumber')} />
-                <br />
-                {errors.phoneNumber?.message && (
-                    <p>{String(errors.phoneNumber?.message)}</p>
-                )}
-                <label htmlFor="favoriteColor">Favorite Color</label>
-                <select {...register('favoriteColor')}>
-                    <option value="blue">Blue</option>
-                    <option value="red">Red</option>
-                    <option value="green">Green</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="purple">Purple</option>
-                    <option value="black">Black</option>
-                    <option value="orange">Orange</option>
-                </select>
-                <br />
-                <button type="submit">Signup</button>
-            </form>
-            <button onClick={() => send({ type: 'login' })}>
-                Log in instead
-            </button>
-        </>
+                <TextInput
+                    control={control}
+                    name="email"
+                    label="Email Address"
+                />
+                <TextInput
+                    control={control}
+                    name="password"
+                    label="Password"
+                    fieldType="password"
+                />
+                <TextInput
+                    control={control}
+                    name="fullName"
+                    label="Full Name"
+                />
+                <TextInput
+                    control={control}
+                    name="phoneNumber"
+                    label="Phone Number"
+                />
+                <SelectInput
+                    control={control}
+                    name="favoriteColor"
+                    label="Favorite Color"
+                    options={[
+                        'blue',
+                        'red',
+                        'green',
+                        'yellow',
+                        'purple',
+                        'black',
+                        'orange',
+                    ]}
+                />
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mb: 2 }}
+                >
+                    Sign Up
+                </Button>
+                <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => send({ type: 'login' })}
+                    sx={{ mb: 2 }}
+                >
+                    Log in instead
+                </Button>
+            </Box>
+        </Box>
     );
 };

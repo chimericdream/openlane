@@ -1,9 +1,11 @@
+import { Box, Button, Typography } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import type { Profile } from '../types.ts';
 
 import { useProfileContext } from './profile-context.tsx';
+import { TextInput } from './text-input.tsx';
 
 const schema = z.object({
     email: z.string().email(),
@@ -19,21 +21,27 @@ const schema = z.object({
 export const LoginForm = () => {
     const { state, send } = useProfileContext();
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm({
+    const { handleSubmit, control } = useForm({
         resolver: zodResolver(schema),
     });
 
     const { context } = state;
 
     return (
-        <>
-            <h1>Login</h1>
+        <Box
+            sx={{
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
+            <Typography component="h1" variant="h5">
+                Sign in
+            </Typography>
             {context.message && <p>{context.message}</p>}
-            <form
+            <Box
+                component="form"
                 onSubmit={handleSubmit((d) => {
                     const data = { ...d } as Profile;
                     if (data.phoneNumber) {
@@ -43,24 +51,36 @@ export const LoginForm = () => {
 
                     send({ type: 'tryLogin', data });
                 })}
+                sx={{ mt: 1 }}
             >
-                <label htmlFor="email">Email address</label>
-                <input type="email" {...register('email')} />
-                <br />
-                {errors.email?.message && (
-                    <p>{String(errors.email?.message)}</p>
-                )}
-                <label htmlFor="password">Password</label>
-                <input type="password" {...register('password')} />
-                <br />
-                {errors.password?.message && (
-                    <p>{String(errors.password?.message)}</p>
-                )}
-                <button type="submit">Login</button>
-            </form>
-            <button onClick={() => send({ type: 'signup' })}>
-                Sign up instead
-            </button>
-        </>
+                <TextInput
+                    control={control}
+                    name="email"
+                    label="Email Address"
+                />
+                <TextInput
+                    control={control}
+                    name="password"
+                    label="Password"
+                    fieldType="password"
+                />
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mb: 2 }}
+                >
+                    Sign In
+                </Button>
+                <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => send({ type: 'signup' })}
+                    sx={{ mb: 2 }}
+                >
+                    Sign up instead
+                </Button>
+            </Box>
+        </Box>
     );
 };
