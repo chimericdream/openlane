@@ -15,6 +15,12 @@ export const profileMachine = setup({
                   data: Record<string, Profile>;
               }
             | {
+                  type: 'login';
+              }
+            | {
+                  type: 'signup';
+              }
+            | {
                   type: 'tryLogin';
                   data: { email: string; password: string };
               }
@@ -43,18 +49,26 @@ export const profileMachine = setup({
     },
     states: {
         init: {
-            on: {
-                loadData: {
-                    actions: assign({
-                        users: ({ event }) => event.data,
-                    }),
-                    target: 'ready',
-                },
+            always: {
+                actions: assign({
+                    users: () => {
+                        const loadedUsers = localStorage.getItem('users');
+
+                        if (!loadedUsers) {
+                            return {};
+                        }
+
+                        return JSON.parse(loadedUsers) as Record<
+                            string,
+                            Profile
+                        >;
+                    },
+                }),
+                target: 'ready',
             },
         },
         ready: {
             entry: assign({
-                message: null,
                 profile: null,
             }),
             on: {
@@ -86,9 +100,24 @@ export const profileMachine = setup({
 
                             return user?.password !== password;
                         },
-                        target: 'ready',
                     },
                 ],
+                signup: {
+                    actions: assign({
+                        message: null,
+                    }),
+                    target: 'signup',
+                },
+            },
+        },
+        signup: {
+            on: {
+                login: {
+                    actions: assign({
+                        message: null,
+                    }),
+                    target: 'ready',
+                },
                 trySignup: [
                     {
                         actions: assign({
@@ -96,10 +125,17 @@ export const profileMachine = setup({
                             users: ({ context, event }) => {
                                 const { email } = event.data;
 
-                                return {
+                                const users = {
                                     ...context.users,
                                     [email]: event.data,
                                 };
+
+                                localStorage.setItem(
+                                    'users',
+                                    JSON.stringify(users)
+                                );
+
+                                return users;
                             },
                             message: null,
                         }),
@@ -119,23 +155,38 @@ export const profileMachine = setup({
 
                             return typeof context.users[email] !== 'undefined';
                         },
-                        target: 'ready',
                     },
                 ],
             },
         },
         loggedIn: {
+            after: {
+                60000: {
+                    target: 'ready',
+                    actions: assign({
+                        message: 'Session expired.',
+                    }),
+                },
+            },
             on: {
                 updateProfile: {
                     actions: assign({
+                        message: 'Profile updated.',
                         profile: ({ event }) => event.data,
                         users: ({ context, event }) => {
                             const { email } = event.data;
 
-                            return {
+                            const users = {
                                 ...context.users,
                                 [email]: event.data,
                             };
+
+                            localStorage.setItem(
+                                'users',
+                                JSON.stringify(users)
+                            );
+
+                            return users;
                         },
                     }),
                 },
@@ -149,6 +200,11 @@ export const profileMachine = setup({
                                 const users = { ...context.users };
 
                                 delete users[email];
+
+                                localStorage.setItem(
+                                    'users',
+                                    JSON.stringify(users)
+                                );
 
                                 return users;
                             }

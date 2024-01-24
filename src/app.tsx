@@ -1,32 +1,27 @@
-import { useState } from 'react';
+import { LoginForm } from './components/login-form.tsx';
+import { useProfileContext } from './components/profile-context.tsx';
+import { ProfileView } from './components/profile-view.tsx';
+import { SignupForm } from './components/signup-form.tsx';
 
-function App() {
-    const [count, setCount] = useState(0);
+export const App = () => {
+    const { state } = useProfileContext();
 
-    return (
-        <>
-            <div>
-                <a href="https://vitejs.dev" target="_blank">
-                    Vite logo
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    React logo
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p>
-        </>
-    );
-}
-
-export default App;
+    switch (state.value) {
+        case 'init':
+            return null;
+        case 'ready':
+            return <LoginForm />;
+        case 'signup':
+            return <SignupForm />;
+        case 'loggedIn':
+            return <ProfileView />;
+        default:
+            return (
+                <>
+                    <h1>Inconceivable!</h1>
+                    <p>It shouldn't be possible to get here...</p>
+                    <img src="/img/inconceivable.gif" alt="Inconceivable!" />
+                </>
+            );
+    }
+};
